@@ -8,7 +8,7 @@ public class Character : MonoBehaviour
     void Start()
     {
         Agent = transform.GetComponent<NavMeshAgent>();
-        InvokeRepeating("SetNewDestination",Random.Range(0,3f),5f);
+        InvokeRepeating("SetNewDestination",Random.Range(0,3f),15f);
     }
 
     // Update is called once per frame
