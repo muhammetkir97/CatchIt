@@ -6,7 +6,8 @@ using UnityEngine.UI;
 
 public class PlayerInteract : MonoBehaviour
 {
-    [Header("Camera Controll")]
+    [Header("Camera Control")]
+    
     [SerializeField] private Button BtnRightCam,BtnLeftCam;
     [SerializeField] private CameraController CamController;
 

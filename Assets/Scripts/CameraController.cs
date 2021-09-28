@@ -5,11 +5,13 @@ using UnityEngine;
 public class CameraController : MonoBehaviour
 {
     [SerializeField] private Transform CamParent;
+    Transform CurrentCamParent;
     [SerializeField] private Transform Cam;
     int CurrentCamNumber = 0;
     void Start()
     {
-        
+        CurrentCamParent = CamParent.GetChild(Globals.Instance.GetCurrentLevel());
+        ChangeCurrentCam();
     }
 
     // Update is called once per frame
@@ -28,14 +30,14 @@ public class CameraController : MonoBehaviour
     float VAngle = 0,HAngle = 0,VSmooth,HSmooth;
     void ChangeCameraAngle()
     {
-        
-        float vAxis = ControllerSystem.Instance.GetAxis("Vertical");
         float hAxis = ControllerSystem.Instance.GetAxis("Horizontal");
+        float vAxis = ControllerSystem.Instance.GetAxis("Vertical");
+        
+        HAngle = Mathf.SmoothDamp(HAngle,hAxis * Globals.Instance.GetCameraMaxAngle().x,ref HSmooth,0.1f);
+        VAngle = Mathf.SmoothDamp(VAngle,-vAxis * Globals.Instance.GetCameraMaxAngle().y,ref VSmooth,0.1f);
+        
 
-        VAngle = Mathf.SmoothDamp(VAngle,-vAxis * 45,ref VSmooth,0.1f);
-        HAngle = Mathf.SmoothDamp(HAngle,hAxis * 45,ref HSmooth,0.1f);
-
-        Vector3 defaultAngle = CamParent.GetChild(0).GetChild(CurrentCamNumber).eulerAngles;
+        Vector3 defaultAngle = CurrentCamParent.GetChild(CurrentCamNumber).eulerAngles;
         defaultAngle.x += VAngle;
         defaultAngle.y += HAngle;
         
@@ -48,9 +50,9 @@ public class CameraController : MonoBehaviour
     {
         
         int camNumber = CurrentCamNumber + direction;
-        if(camNumber < 0) camNumber = CamParent.GetChild(0).childCount-1;
+        if(camNumber < 0) camNumber = CurrentCamParent.childCount-1;
 
-        if(camNumber >= CamParent.GetChild(0).childCount) camNumber = 0;
+        if(camNumber >= CurrentCamParent.childCount) camNumber = 0;
 
         CurrentCamNumber = camNumber;
         Debug.Log(camNumber);
@@ -59,6 +61,6 @@ public class CameraController : MonoBehaviour
 
     void ChangeCurrentCam()
     {
-        Cam.position = CamParent.GetChild(0).GetChild(CurrentCamNumber).position;
+        Cam.position = CurrentCamParent.GetChild(CurrentCamNumber).position;
     }
 }
