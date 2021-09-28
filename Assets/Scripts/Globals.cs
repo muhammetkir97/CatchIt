@@ -9,6 +9,8 @@ public class Globals : MonoBehaviour
 
     #endregion
 
+    public Dictionary<int,bool> SelectedWaypoints = new Dictionary<int, bool>();
+
     int CameraMaxV = 45;
     int CameraMaxH = 45;
     int CurrentLevel = 0;
