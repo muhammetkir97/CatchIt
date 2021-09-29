@@ -11,6 +11,7 @@ enum CharacterStatus
     Buy,
     Steal
 }
+
 public class Character : MonoBehaviour
 {
     Animator AnimatorController;
@@ -21,12 +22,52 @@ public class Character : MonoBehaviour
     int SelectedCharacter;
     Transform CharacterParent;
     CharacterStatus  Status = CharacterStatus.Stop;
+    Vector3 OutPosition;
+
+    bool IsActive = false;
+    bool IsThief = false;
+    int TryStealTime = 0;
+    int TimeStep = 0;
     void Start()
     {
+        OutPosition = GameObject.Find("OutPosition").transform.position;
         CharacterParent = transform.GetChild(0);
         SelectedCharacter = Random.Range(1,CharacterParent.childCount-1);
         AnimatorController = CharacterParent.GetComponent<Animator>();
 
+        Agent = transform.GetComponent<NavMeshAgent>();
+
+        Waypoints = Globals.Instance.GetWaypoints();
+        WaypointCount = Waypoints.childCount;
+
+        SetCharacterSkin();
+
+       
+
+
+    }
+
+    public void Init(bool isThief)
+    {
+        IsThief = isThief;
+        if(isThief) SetAsThief();
+        IsActive = true;
+        Status = CharacterStatus.Stop;
+
+        CharacterParent.GetComponent<AnimEvent>().StealEnd += (() => StealEnded(1));
+
+        InvokeRepeating("SetNewDestination",0,Random.Range(10,18));
+        InvokeRepeating("PathControl",0,0.1f);
+    }
+
+    void SetAsThief()
+    {
+        TryStealTime = Random.Range(1,2);
+
+
+    }
+    void SetCharacterSkin()
+    {
         foreach(Transform character in CharacterParent)
         {
             if(character.GetSiblingIndex() != 0)
@@ -41,11 +82,6 @@ public class Character : MonoBehaviour
                 }
             }
         }
-        Agent = transform.GetComponent<NavMeshAgent>();
-        Waypoints = Globals.Instance.GetWaypoints();
-        WaypointCount = Waypoints.childCount;
-        InvokeRepeating("SetNewDestination",Random.Range(0f,2f),Random.Range(12,18));
-        InvokeRepeating("PathControl",0,0.1f);
     }
 
     // Update is called once per frame
@@ -64,13 +100,39 @@ public class Character : MonoBehaviour
     {
         if(Agent.remainingDistance < 0.35f && Status != CharacterStatus.Stop)
         {
+            TimeStep++;
             Status = CharacterStatus.Stop;
+            AnimatorController.ResetTrigger("Walk");
             AnimatorController.SetTrigger("Idle");
+            iTween.RotateTo(gameObject,Waypoints.GetChild(LastWaypoint).eulerAngles,0.5f);
+
+            if(IsThief)
+            {
+                if(TimeStep == TryStealTime)
+                {
+                    StartStealing();
+                }
+            }
         }
+    }
+
+    void StartStealing()
+    {
+        AnimatorController.SetTrigger("Steal");
+
+    }
+
+    public void StealEnded( int i)
+    {
+        Debug.Log("steal end");
+        transform.GetChild(1).GetComponent<ParticleSystem>().Play();
+        CharacterOut();
+        GameSystem.Instance.OutThief();
     }
 
     void SetNewDestination()
     {
+        
         CancelInvoke("PathControl");
         int SelectedWaypoint = Random.Range(0,WaypointCount);
         bool isSelected = true;
@@ -86,19 +148,44 @@ public class Character : MonoBehaviour
 
         }
 
+        Status = CharacterStatus.Stop;
+        //AnimatorController.SetTrigger("Idle");
+
         
         AnimatorController.SetTrigger("Walk");
+
         Globals.Instance.SelectedWaypoints.Remove(LastWaypoint);
         Globals.Instance.SelectedWaypoints.Add(SelectedWaypoint,true);
         
-
-        NavMeshHit hit;
-        NavMesh.SamplePosition(Waypoints.GetChild(SelectedWaypoint).position,out hit,3,NavMesh.AllAreas);
-        
-        Agent.destination = hit.position; 
+        Agent.destination = Waypoints.GetChild(SelectedWaypoint).position; 
         Status = CharacterStatus.Walk;
         LastWaypoint = SelectedWaypoint;
 
         InvokeRepeating("PathControl",0.1f,0.1f);
+    }
+
+    public void CharacterOut()
+    {
+        //CancelInvoke("PathControl");
+        CancelInvoke("SetNewDestination");
+        Globals.Instance.SelectedWaypoints.Remove(LastWaypoint);
+        AnimatorController.SetTrigger("Walk");
+        Agent.destination = OutPosition; 
+        Invoke("SetDeactive",15f);
+    }
+
+    public bool GetStatus()
+    {
+        return IsActive;
+    }
+
+    public bool GetThiefStatus()
+    {
+        return IsThief;
+    }
+
+    void SetDeactive()
+    {
+        IsActive = false;
     }
 }

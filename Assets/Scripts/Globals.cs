@@ -15,12 +15,25 @@ public class Globals : MonoBehaviour
     int CameraMaxH = 45;
     int CurrentLevel = 0;
 
+    int[] CharacterLimits = {6,6,6,6,6,6};
+    int[] ThiefLimits = {1,1,1,2,2,2};
+
     void Awake()
     {
         if(Instance == null)
         {
             Instance = this;
         }
+    }
+
+    public int GetLevelThiefLimit()
+    {
+        return ThiefLimits[GetCurrentLevel()];
+    }
+
+    public int GetLevelCharacterLimit()
+    {
+        return CharacterLimits[GetCurrentLevel()];
     }
 
 
