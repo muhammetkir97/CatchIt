@@ -14,6 +14,8 @@ enum CharacterStatus
 
 public class Character : MonoBehaviour
 {
+
+    [SerializeField] private Transform StealPositionTransform;
     Animator AnimatorController;
     NavMeshAgent Agent;
     Transform Waypoints;
@@ -23,9 +25,11 @@ public class Character : MonoBehaviour
     Transform CharacterParent;
     CharacterStatus  Status = CharacterStatus.Stop;
     Vector3 OutPosition;
+    GameObject StealedObject;
 
     bool IsActive = false;
     bool IsThief = false;
+    bool IsStealing = false;
     int TryStealTime = 0;
     int TimeStep = 0;
     void Start()
@@ -121,16 +125,36 @@ public class Character : MonoBehaviour
 
     void StartStealing()
     {
+
+
+        IsStealing = true;
         AnimatorController.SetTrigger("Steal");
 
+        Invoke("CreateStealObject",0.4f);
+
+    }
+
+    void CreateStealObject()
+    {
+        GameObject stealObject = Waypoints.GetChild(LastWaypoint).GetComponent<Waypoint>().GetStealObject();
+        GameObject cloneStealObject = Instantiate(stealObject,GetStealPosition(),stealObject.transform.rotation);
+        cloneStealObject.AddComponent<HandFollow>().SetFollowObject(StealPositionTransform);
+        StealedObject = cloneStealObject;
+    }
+
+    Vector3 GetStealPosition()
+    {
+        return StealPositionTransform.position;
     }
 
     public void StealEnded( int i)
     {
-        Debug.Log("steal end");
+        IsStealing = false;
+
         transform.GetChild(1).GetComponent<ParticleSystem>().Play();
+        Destroy(StealedObject);
         CharacterOut();
-        GameSystem.Instance.OutThief();
+        
     }
 
     void SetNewDestination()
@@ -187,10 +211,28 @@ public class Character : MonoBehaviour
         return IsThief;
     }
 
+    public bool GetStealingStatus()
+    {
+        return IsStealing;
+    }
+
+    public GameObject GetStealObject()
+    {
+        return StealedObject;
+    }
+
+    public void Busted()
+    {
+        AnimatorController.SetTrigger("Busted");
+    }
+
     void SetDeactive()
     {
-                AnimatorController.SetFloat("IdleType",0);
+        if(IsThief) GameSystem.Instance.OutThief();
+        AnimatorController.SetFloat("IdleType",0);
         AnimatorController.SetFloat("WalkType",0);
         IsActive = false;
+        IsThief = false;
+        TimeStep = 0;
     }
 }

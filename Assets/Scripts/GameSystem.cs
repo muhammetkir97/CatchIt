@@ -74,7 +74,9 @@ public class GameSystem : MonoBehaviour
     {
         if(ActiveCharacter < Globals.Instance.GetLevelCharacterLimit())
         {
-            foreach(Transform tf in CharacterParent)
+            List<Transform> randomCharacters = RandomParentList(CharacterParent);
+
+            foreach(Transform tf in randomCharacters)
             {
                 if(!tf.GetComponent<Character>().GetStatus())
                 {
@@ -92,6 +94,28 @@ public class GameSystem : MonoBehaviour
         }
     }
 
+    List<Transform> RandomParentList(Transform parent)
+    {
+        List<Transform> randomCharacters = new List<Transform>();
+
+        foreach(Transform tf in parent)
+        {
+            randomCharacters.Add(tf);
+        }
+
+        int n = randomCharacters.Count;  
+        while (n > 1) 
+        {  
+            n--;  
+            int k = Random.Range(0,n + 1);  
+            Transform tf = randomCharacters[k];  
+            randomCharacters[k] = randomCharacters[n];  
+            randomCharacters[n] = tf;  
+        } 
+            
+        return randomCharacters;
+    }
+
     public void OutThief()
     {
         ThiefCount--;
@@ -100,7 +124,26 @@ public class GameSystem : MonoBehaviour
 
     public void StartAlarm()
     {
+        foreach(Transform tf in CharacterParent)
+        {
+            Character selectedCharacter = tf.GetComponent<Character>();
+            if(selectedCharacter.GetStealingStatus())
+            {
+                if(IsVisibleOnCamera(selectedCharacter.GetStealObject()))
+                {
+                    selectedCharacter.Busted();
+                }
+                
+            }
+        }
+    }
 
+    bool IsVisibleOnCamera(GameObject Object) {
+        Plane[] planes = GeometryUtility.CalculateFrustumPlanes(Camera.main);
+
+        if (GeometryUtility.TestPlanesAABB(planes , Object.GetComponent<Collider>().bounds)) return true;
+
+        return false;
     }
 
     // Update is called once per frame
