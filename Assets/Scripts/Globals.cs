@@ -18,6 +18,8 @@ public class Globals : MonoBehaviour
     int[] CharacterLimits = {6,6,6,6,6,6};
     int[] ThiefLimits = {1,1,1,2,2,2};
 
+    float AlarmCooldown = 3;
+
     void Awake()
     {
         if(Instance == null)
@@ -57,6 +59,11 @@ public class Globals : MonoBehaviour
     {
         Vector2 maxAngle = new Vector2(CameraMaxH,CameraMaxV);
         return maxAngle;
+    }
+
+    public float GetAlarmCooldown()
+    {
+        return AlarmCooldown;
     }
 
     void Start()

@@ -17,7 +17,7 @@ public class AnimEvent : MonoBehaviour
         evt.functionName = "StealEnded";
         evt.objectReferenceParameter = this;
 
-        AnimatorController.runtimeAnimatorController.animationClips[2].AddEvent(evt);
+        AnimatorController.runtimeAnimatorController.animationClips[4].AddEvent(evt);
     }
 
     // Update is called once per frame

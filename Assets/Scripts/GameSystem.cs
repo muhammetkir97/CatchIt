@@ -36,7 +36,7 @@ public class GameSystem : MonoBehaviour
         for(int i=0; i<firstCharCount; i++)
         {
             waitTime = (1f + (i * 0.4f) )* i;
-            Invoke("AddNewCharacter",waitTime);
+            Invoke("AddNewCharacter",waitTime + 0.1f);
         }
 
         InvokeRepeating("CharacterCountControl",waitTime + 1,10);
@@ -95,6 +95,12 @@ public class GameSystem : MonoBehaviour
     public void OutThief()
     {
         ThiefCount--;
+        ActiveCharacter--;
+    }
+
+    public void StartAlarm()
+    {
+
     }
 
     // Update is called once per frame

@@ -8,8 +8,14 @@ public class PlayerInteract : MonoBehaviour
 {
     [Header("Camera Control")]
     
-    [SerializeField] private Button BtnRightCam,BtnLeftCam;
+    [SerializeField] private Button BtnRightCam;
+    [SerializeField] private Button BtnLeftCam;
     [SerializeField] private CameraController CamController;
+
+
+    [Header("Game Interface")]
+    [SerializeField] private Button BtnAlarm;
+
 
     
 
@@ -17,6 +23,8 @@ public class PlayerInteract : MonoBehaviour
     {
         BtnRightCam.onClick.AddListener(() => ClickChangeCam(1));
         BtnLeftCam.onClick.AddListener(() => ClickChangeCam(-1));
+        
+        BtnAlarm.onClick.AddListener(ClickAlarm);
     }
 
     // Update is called once per frame
@@ -30,6 +38,18 @@ public class PlayerInteract : MonoBehaviour
     void ClickChangeCam(int direction)
     {
        CamController.ChangeCam(direction);
+    }
+
+    void ClickAlarm()
+    {
+        BtnAlarm.interactable = false;
+        GameSystem.Instance.StartAlarm();
+        Invoke("ActivateAlarmButton",Globals.Instance.GetAlarmCooldown());
+    }
+
+    void ActivateAlarmButton()
+    {
+        BtnAlarm.interactable = true;
     }
 
 

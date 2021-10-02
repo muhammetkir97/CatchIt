@@ -58,12 +58,15 @@ public class Character : MonoBehaviour
 
         InvokeRepeating("SetNewDestination",0,Random.Range(10,18));
         InvokeRepeating("PathControl",0,0.1f);
+        
     }
 
     void SetAsThief()
     {
         TryStealTime = Random.Range(1,2);
-
+     
+        AnimatorController.SetFloat("IdleType",1f);
+        AnimatorController.SetFloat("WalkType",1f);
 
     }
     void SetCharacterSkin()
@@ -186,6 +189,8 @@ public class Character : MonoBehaviour
 
     void SetDeactive()
     {
+                AnimatorController.SetFloat("IdleType",0);
+        AnimatorController.SetFloat("WalkType",0);
         IsActive = false;
     }
 }

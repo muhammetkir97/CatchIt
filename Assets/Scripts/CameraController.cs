@@ -30,8 +30,19 @@ public class CameraController : MonoBehaviour
     float VAngle = 0,HAngle = 0,VSmooth,HSmooth;
     void ChangeCameraAngle()
     {
-        float hAxis = ControllerSystem.Instance.GetAxis("Horizontal");
-        float vAxis = ControllerSystem.Instance.GetAxis("Vertical");
+        float hAxis = ControllerSystem.Instance.GetAxis("HorizontalDrag");
+        float vAxis = ControllerSystem.Instance.GetAxis("VerticalDrag");
+
+        Vector3 targetAngle = Cam.eulerAngles;
+
+        targetAngle.x += -vAxis;
+        targetAngle.y += hAxis;
+
+        
+
+        Cam.eulerAngles = Vector3.SmoothDamp(Cam.eulerAngles,targetAngle,ref SmoothVel,0.2f);
+
+        /*
         
         HAngle = Mathf.SmoothDamp(HAngle,hAxis * Globals.Instance.GetCameraMaxAngle().x,ref HSmooth,0.1f);
         VAngle = Mathf.SmoothDamp(VAngle,-vAxis * Globals.Instance.GetCameraMaxAngle().y,ref VSmooth,0.1f);
@@ -43,6 +54,7 @@ public class CameraController : MonoBehaviour
         
         
         Cam.eulerAngles = defaultAngle;
+        */
 
     }
 
