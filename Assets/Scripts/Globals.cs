@@ -17,8 +17,9 @@ public class Globals : MonoBehaviour
 
     int[] CharacterLimits = {6,6,6,6,6,6};
     int[] ThiefLimits = {1,1,1,2,2,2};
+    int[] LevelThiefCount = {6,6,6,6,6};
 
-    float AlarmCooldown = 3;
+    float AlarmCooldown = 2;
 
     void Awake()
     {
@@ -45,9 +46,14 @@ public class Globals : MonoBehaviour
     }
 
 
+    ///////////////////////////
+    //////////////////////////
+    //LEVEL AYARI
+    ///////////////////////
     public int GetCurrentLevel()
     {
         return CurrentLevel;
+        //return 1
     }
 
     public GameObject GetCurrentLevelObject()
@@ -70,6 +76,11 @@ public class Globals : MonoBehaviour
     public float GetAlarmCooldown()
     {
         return AlarmCooldown;
+    }
+
+    public int GetLevelThiefCount()
+    {
+        return LevelThiefCount[GetCurrentLevel()];
     }
 
     void Start()

@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Sprites;
-
+using UnityEngine.UI;
+using UnityEngine.AI;
 public class GameSystem : MonoBehaviour
 {
     #region Singleton
@@ -10,8 +11,10 @@ public class GameSystem : MonoBehaviour
 
     #endregion
 
+    int ArrestedThiefCount = 0;
     int ActiveCharacter = 0;
     int ThiefCount = 0;
+    int TotalThiefCount;
     bool GameStatus = false;
     Transform CharacterParent;
     [SerializeField] private Character PoliceCharacter;
@@ -25,6 +28,22 @@ public class GameSystem : MonoBehaviour
     [SerializeField] private GameObject RedLight;
     [SerializeField] private GameObject BlueLight;
 
+    [SerializeField] private Image UiMask;
+
+    [SerializeField] private Image[] LevelStars;
+    [SerializeField] private Image ProgressBar;
+
+    [SerializeField] private GameObject EndPopup;
+    [SerializeField] private Image[] EndLevelStars;
+    [SerializeField] private GameObject RetryButton;
+    [SerializeField] private  GameObject NextButton;
+
+    [SerializeField] private  GameObject PausePopup;
+    [SerializeField] private  GameObject PauseBackground;
+
+
+
+    Character LastThief;
 
     void Awake()
     {
@@ -43,6 +62,7 @@ public class GameSystem : MonoBehaviour
 
     void StartGame()
     {
+        ControlProgress();
         int firstCharCount = Mathf.RoundToInt(Globals.Instance.GetLevelCharacterLimit() * 0.75f);
         float waitTime = 0;
         for(int i=0; i<firstCharCount; i++)
@@ -51,7 +71,7 @@ public class GameSystem : MonoBehaviour
             Invoke("AddNewCharacter",waitTime + 0.1f);
         }
 
-        InvokeRepeating("CharacterCountControl",waitTime + 1,10);
+        InvokeRepeating("CharacterCountControl",waitTime + 1,3);
         InvokeRepeating("OutCharacter",waitTime + 5,20);
 
         PoliceCharacter.Init(false,true);
@@ -81,6 +101,7 @@ public class GameSystem : MonoBehaviour
 
     void CharacterCountControl()
     {
+        Debug.Log(ActiveCharacter);
         AddNewCharacter();
     }
 
@@ -92,13 +113,14 @@ public class GameSystem : MonoBehaviour
 
             foreach(Transform tf in randomCharacters)
             {
-                if(!tf.GetComponent<Character>().GetStatus())
+                if(!tf.GetComponent<Character>().GetStatus() && tf.GetComponent<Character>().GetSelectableStatus())
                 {
                     bool thiefStatus = false;
-                    if(ThiefCount < Globals.Instance.GetLevelThiefLimit())
+                    if(ThiefCount < Globals.Instance.GetLevelThiefLimit() && TotalThiefCount < Globals.Instance.GetLevelThiefCount())
                     {
                         thiefStatus = true;
                         ThiefCount++;
+                        TotalThiefCount++;
                     }
                     tf.GetComponent<Character>().Init(thiefStatus,false);
                     ActiveCharacter++;
@@ -132,8 +154,16 @@ public class GameSystem : MonoBehaviour
 
     public void OutThief()
     {
-        ThiefCount--;
-        ActiveCharacter--;
+        if(TotalThiefCount >= Globals.Instance.GetLevelThiefCount())
+        {
+            EndGame();
+        }
+        else
+        {
+            ThiefCount--;
+            ActiveCharacter--;
+        }
+
     }
 
     public void StartAlarm()
@@ -147,6 +177,9 @@ public class GameSystem : MonoBehaviour
                 {
                     selectedCharacter.Busted();
                     SendPolice(selectedCharacter);
+                    ArrestedThiefCount++;
+                    
+                    ControlProgress();
                 }
                 
             }
@@ -154,33 +187,169 @@ public class GameSystem : MonoBehaviour
     }
 
     bool IsVisibleOnCamera(GameObject Object) {
-        Plane[] planes = GeometryUtility.CalculateFrustumPlanes(Camera.main);
+        if(Object != null || Camera.main != null)
+        {
+            Plane[] planes = GeometryUtility.CalculateFrustumPlanes(Camera.main);
+            if(planes != null)
+            {
+                if (GeometryUtility.TestPlanesAABB(planes , Object.GetComponent<Collider>().bounds)) return true;
+            }
 
-        if (GeometryUtility.TestPlanesAABB(planes , Object.GetComponent<Collider>().bounds)) return true;
+
+        }
 
         return false;
     }
 
     void SendPolice(Character thief)
     {
-        ArrestCamera.enabled = true;
-        NormalCamera.enabled = false;
+        SetArrestEffects(true);
+        SetArrestCamera(true);
         
+        PoliceCharacter.transform.GetComponent<NavMeshAgent>().enabled = false;
+        LastThief = thief;
+
         thief.transform.position = ArrestPosition.position;
         PoliceSendEffect.transform.position = thief.transform.position;
         thief.transform.rotation = Quaternion.Euler(0,90,0);
-
-        iTween.ScaleTo(ControlPanel,Vector3.zero,0.3f);
-        iTween.RotateBy(RedLight,iTween.Hash("z",3,"time",5,"looptype",iTween.LoopType.loop,"easetype",iTween.EaseType.linear));
-        iTween.RotateBy(BlueLight,iTween.Hash("z",-3,"time",5,"looptype",iTween.LoopType.loop,"easetype",iTween.EaseType.linear));
-
-        iTween.RotateBy(ArrestBackground,iTween.Hash("z",1,"time",5,"looptype",iTween.LoopType.loop,"easetype",iTween.EaseType.linear));
-        iTween.MoveBy(ArrestBackground,iTween.Hash("z",0.5,"time",0.3,"looptype",iTween.LoopType.pingPong,"easetype",iTween.EaseType.linear));
+        
         PoliceSendEffect.Play();
         PoliceCharacter.transform.position = thief.transform.position - (thief.transform.forward * 1.6f);
         PoliceCharacter.transform.LookAt(thief.transform,Vector3.up);
         PoliceCharacter.ArrestThief();
+        Invoke("BackToMarket",2.5f);
     }
+
+    void SetArrestCamera(bool status)
+    {
+        ArrestCamera.enabled = status;
+        NormalCamera.enabled = !status;
+    }
+
+    void BackToMarket()
+    {
+        SetArrestCamera(false);
+        SetArrestEffects(false);
+        
+        LastThief.SetDeactive();
+        PoliceCharacter.SetDeactive();
+    }
+
+    void SetArrestEffects(bool status)
+    {
+        if(status)
+        {
+            UiMask.color = Color.clear;
+            iTween.ScaleTo(ControlPanel,Vector3.zero,0.3f);
+            iTween.RotateBy(RedLight,iTween.Hash("z",3,"time",5,"looptype",iTween.LoopType.loop,"easetype",iTween.EaseType.linear));
+            iTween.RotateBy(BlueLight,iTween.Hash("z",-3,"time",5,"looptype",iTween.LoopType.loop,"easetype",iTween.EaseType.linear));
+
+            iTween.RotateBy(ArrestBackground,iTween.Hash("z",1,"time",5,"looptype",iTween.LoopType.loop,"easetype",iTween.EaseType.linear));
+            iTween.MoveBy(ArrestBackground,iTween.Hash("z",0.5,"time",0.3,"looptype",iTween.LoopType.pingPong,"easetype",iTween.EaseType.linear));
+        }
+        else
+        {
+            UiMask.color = Color.white;
+            iTween.Stop(ControlPanel);
+            iTween.Stop(RedLight);
+            iTween.Stop(BlueLight);
+            iTween.Stop(ArrestBackground);
+        }
+    }
+
+    void ControlProgress()
+    {
+        ProgressBar.fillAmount = ArrestedThiefCount/(float)Globals.Instance.GetLevelThiefCount();
+        if(ArrestedThiefCount == 6)
+        {
+            SetLevelStar(3);
+        }
+        else if(ArrestedThiefCount >= 4)
+        {
+            SetLevelStar(2);
+        }
+        else if(ArrestedThiefCount >= 2)
+        {
+            SetLevelStar(1);
+        }
+        else
+        {
+            SetLevelStar(0);
+        }
+    }
+
+    void SetLevelStar(int level)
+    {
+        if(level == 0)
+        {
+            for(int i=0; i<3; i++)
+            {
+                LevelStars[i].color = Color.clear;
+            }
+        }
+        else
+        {
+            for(int i=1; i<4; i++)
+            {
+                if(i <= level)
+                {
+                    LevelStars[i-1].color = Color.white;
+                }
+                else
+                {
+                    LevelStars[i-1].color = Color.clear;
+                }
+            }
+        }
+
+    }
+
+    void EndGame()
+    {
+        iTween.ScaleTo(EndPopup,Vector3.one,0.5f);
+        if(ArrestedThiefCount >= 2)
+        {
+            RetryButton.SetActive(false);
+            NextButton.SetActive(true);
+
+            if(ArrestedThiefCount >= 2) iTween.ScaleTo(EndLevelStars[0].gameObject,iTween.Hash("scale",Vector3.one,"time",0.3f,"delay",0.3f,"easetype",iTween.EaseType.easeOutBounce));
+            if(ArrestedThiefCount >= 4) iTween.ScaleTo(EndLevelStars[1].gameObject,iTween.Hash("scale",Vector3.one,"time",0.3f,"delay",0.5f,"easetype",iTween.EaseType.easeOutBounce));
+            if(ArrestedThiefCount >= 6) iTween.ScaleTo(EndLevelStars[2].gameObject,iTween.Hash("scale",Vector3.one,"time",0.3f,"delay",0.8f,"easetype",iTween.EaseType.easeOutBounce));
+        }
+        else
+        {
+            RetryButton.SetActive(true);
+            NextButton.SetActive(false);
+        }
+    }
+
+    public void ShowPauseMenu()
+    {
+        Time.timeScale = 0;
+        SetPausePopupVisible(true);
+        PauseBackground.transform.localScale = Vector3.zero;
+        iTween.ScaleTo(PauseBackground,iTween.Hash("scale",Vector3.one,"time",0.25f,"easetype",iTween.EaseType.spring,"ignoretimescale",true));
+    }
+
+    public void HidePauseMenu()
+    {
+        Time.timeScale = 1;
+        Invoke("HidePauseLate",0.25f);
+        iTween.ScaleTo(PauseBackground,iTween.Hash("scale",Vector3.zero,"time",0.25f,"easetype",iTween.EaseType.spring,"ignoretimescale",true));
+    }
+
+    void HidePauseLate()
+    {
+        SetPausePopupVisible(false);
+    }
+
+    void SetPausePopupVisible(bool status)
+    {
+        PausePopup.SetActive(status);
+    }
+
+
+
 
     // Update is called once per frame
     void Update()

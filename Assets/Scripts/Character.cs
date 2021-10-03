@@ -26,6 +26,7 @@ public class Character : MonoBehaviour
     CharacterStatus  Status = CharacterStatus.Stop;
     Vector3 OutPosition;
     GameObject StealedObject;
+    bool IsSelectable = true;
 
     bool IsActive = false;
     bool IsThief = false;
@@ -33,8 +34,26 @@ public class Character : MonoBehaviour
     bool IsStealing = false;
     int TryStealTime = 0;
     int TimeStep = 0;
+
+    Vector3 StartPosition = Vector3.zero;
+
+
+    void Awake()
+    {
+
+    }
     void Start()
     {
+
+
+        
+
+    
+    }
+
+    public void Init(bool isThief,bool isPolice)
+    {
+        StartPosition = transform.position;
         OutPosition = GameObject.Find("OutPosition").transform.position;
         CharacterParent = transform.GetChild(0);
         
@@ -44,16 +63,7 @@ public class Character : MonoBehaviour
 
         Waypoints = Globals.Instance.GetWaypoints();
         WaypointCount = Waypoints.childCount;
-
         
-
-       
-
-
-    }
-
-    public void Init(bool isThief,bool isPolice)
-    {
         IsPolice = isPolice;
         IsThief = isThief;
         if(isThief) SetAsThief();
@@ -180,11 +190,15 @@ public class Character : MonoBehaviour
     public void StealEnded( int i)
     {
         IsStealing = false;
-
+        Invoke("DestroyStealedObject",1f);
         transform.GetChild(1).GetComponent<ParticleSystem>().Play();
+
+        CharacterOut(); 
+    }
+
+    void DestroyStealedObject()
+    {
         Destroy(StealedObject);
-        CharacterOut();
-        
     }
 
     void SetNewDestination()
@@ -223,12 +237,13 @@ public class Character : MonoBehaviour
 
     public void CharacterOut()
     {
+        IsSelectable = false;
         //CancelInvoke("PathControl");
         CancelInvoke("SetNewDestination");
         Globals.Instance.SelectedWaypoints.Remove(LastWaypoint);
         AnimatorController.SetTrigger("Walk");
         Agent.destination = OutPosition; 
-        Invoke("SetDeactive",15f);
+        Invoke("SetDeactive",3f);
     }
 
     public bool GetStatus()
@@ -253,32 +268,54 @@ public class Character : MonoBehaviour
 
     public void Busted()
     {
+        CancelInvoke("DestroyStealedObject");
         Agent.enabled = false;
         AnimatorController.SetTrigger("Busted");
         
         CancelInvoke("SetNewDestination");
         CancelInvoke("PathControl");
-        Invoke("DropObject",1.2f);
+        CancelInvoke("SetDeactive");
+        Invoke("DropObject",1.1f);
     }
 
     public void DropObject()
     {
         StealedObject.GetComponent<HandFollow>().enabled = false;
-        iTween.MoveBy(StealedObject,Vector3.forward * -3f,1.7f);
+        iTween.MoveBy(StealedObject,iTween.Hash("z",-3,"time",0.5f,"easetype",iTween.EaseType.easeInQuart));
+     
     }
 
     public void ArrestThief()
     {
+        Agent.enabled = false;
         AnimatorController.SetTrigger("Police");
     }
 
-    void SetDeactive()
+    public void SetDeactive()
     {
+        
+        
+        Agent.enabled = true;
+        Agent.Warp(StartPosition);
+        Agent.SetDestination(StartPosition);
         if(IsThief) GameSystem.Instance.OutThief();
         AnimatorController.SetFloat("IdleType",0);
         AnimatorController.SetFloat("WalkType",0);
+        AnimatorController.Play("Idle");
         IsActive = false;
         IsThief = false;
+        IsStealing = false;
         TimeStep = 0;
+        Invoke("SetSelectable",10);
+    }
+
+    public bool GetSelectableStatus()
+    {
+        return IsSelectable;
+    }
+
+    void SetSelectable()
+    {
+        IsSelectable = true;
     }
 }

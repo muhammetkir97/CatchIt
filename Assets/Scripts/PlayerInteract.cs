@@ -15,7 +15,14 @@ public class PlayerInteract : MonoBehaviour
 
     [Header("Game Interface")]
     [SerializeField] private Button BtnAlarm;
-    [SerializeField] private Button BtnExit;
+    [SerializeField] private Button BtnPause;
+    [SerializeField] private Button BtnRetry;
+    [SerializeField] private Button BtnNext;
+
+    [Header("Pause Menu")]
+    [SerializeField] private Button BtnPauseRetry;
+    [SerializeField] private Button BtnPauseContinue;
+    [SerializeField] private Button BtnPauseExit;
 
 
     
@@ -27,7 +34,14 @@ public class PlayerInteract : MonoBehaviour
         
         BtnAlarm.onClick.AddListener(ClickAlarm);
         
-        BtnExit.onClick.AddListener(ClickExit);
+        BtnPause.onClick.AddListener(ClickPause);
+
+        BtnRetry.onClick.AddListener(ClickRetry);
+        BtnNext.onClick.AddListener(ClickNext);
+
+        BtnPauseRetry.onClick.AddListener(ClickRetry);
+        BtnPauseContinue.onClick.AddListener(ClickContinue);
+        BtnPauseExit.onClick.AddListener(ClickExit);
     }
 
     // Update is called once per frame
@@ -58,8 +72,26 @@ public class PlayerInteract : MonoBehaviour
     void ClickExit()
     {
         SceneManager.LoadScene("MainScene",LoadSceneMode.Single);
+    }
 
+    void ClickRetry()
+    {
+        SceneManager.LoadScene("GameScene",LoadSceneMode.Single);
+    }
+
+    void ClickNext()
+    {
+        SceneManager.LoadScene("GameScene",LoadSceneMode.Single);
+    }
+
+    void ClickPause()
+    {
+        GameSystem.Instance.ShowPauseMenu();
     }
 
 
+    void ClickContinue()
+    {
+        GameSystem.Instance.HidePauseMenu();
+    }
 }

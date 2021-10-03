@@ -1,15 +1,18 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using TMPro;
 public class CameraController : MonoBehaviour
 {
     [SerializeField] private Transform CamParent,CamDummy;
     Transform CurrentCamParent;
     [SerializeField] private Transform Cam;
+    [SerializeField] private TextMeshProUGUI TxtCamNumber;
+    [SerializeField] private GameObject RecCircle;
     int CurrentCamNumber = 0;
     void Start()
     {
+        iTween.ScaleTo(RecCircle,iTween.Hash("scale",Vector3.zero,"time",0.02f,"delay",0.5f,"looptype",iTween.LoopType.pingPong,"easetype",iTween.EaseType.linear));
         CurrentCamParent = CamParent.GetChild(Globals.Instance.GetCurrentLevel());
         ChangeCurrentCam();
     }
@@ -105,6 +108,7 @@ public class CameraController : MonoBehaviour
 
     void ChangeCurrentCam()
     {
+        TxtCamNumber.text = $"Camera {CurrentCamNumber + 1}";
         CurrentCamParent.GetChild(CurrentCamNumber).GetChild(0).localEulerAngles = Vector3.zero;
         Cam.parent = CurrentCamParent.GetChild(CurrentCamNumber).transform;
         CamDummy.parent = CurrentCamParent.GetChild(CurrentCamNumber).GetChild(0).transform;
