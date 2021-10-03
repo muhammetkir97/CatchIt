@@ -53,6 +53,7 @@ public class Character : MonoBehaviour
 
     public void Init(bool isThief,bool isPolice)
     {
+        TimeStep = 0;
         StartPosition = transform.position;
         OutPosition = GameObject.Find("OutPosition").transform.position;
         CharacterParent = transform.GetChild(0);
@@ -158,7 +159,7 @@ public class Character : MonoBehaviour
 
             if(IsThief)
             {
-                if(TimeStep == TryStealTime)
+                if(TimeStep >= TryStealTime)
                 {
                     StartStealing();
                 }
@@ -243,7 +244,7 @@ public class Character : MonoBehaviour
         Globals.Instance.SelectedWaypoints.Remove(LastWaypoint);
         AnimatorController.SetTrigger("Walk");
         Agent.destination = OutPosition; 
-        Invoke("SetDeactive",3f);
+        Invoke("SetDeactive",2f);
     }
 
     public bool GetStatus()
@@ -293,15 +294,7 @@ public class Character : MonoBehaviour
 
     public void SetDeactive()
     {
-        
-        
-        Agent.enabled = true;
-        Agent.Warp(StartPosition);
-        Agent.SetDestination(StartPosition);
         if(IsThief) GameSystem.Instance.OutThief();
-        AnimatorController.SetFloat("IdleType",0);
-        AnimatorController.SetFloat("WalkType",0);
-        AnimatorController.Play("Idle");
         IsActive = false;
         IsThief = false;
         IsStealing = false;
@@ -316,6 +309,12 @@ public class Character : MonoBehaviour
 
     void SetSelectable()
     {
+                Agent.enabled = true;
+        Agent.Warp(StartPosition);
+        Agent.SetDestination(StartPosition);
+                AnimatorController.SetFloat("IdleType",0);
+        AnimatorController.SetFloat("WalkType",0);
+        AnimatorController.Play("Idle");
         IsSelectable = true;
     }
 }

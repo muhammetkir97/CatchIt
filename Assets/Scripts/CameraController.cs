@@ -14,6 +14,7 @@ public class CameraController : MonoBehaviour
     {
         iTween.ScaleTo(RecCircle,iTween.Hash("scale",Vector3.zero,"time",0.02f,"delay",0.5f,"looptype",iTween.LoopType.pingPong,"easetype",iTween.EaseType.linear));
         CurrentCamParent = CamParent.GetChild(Globals.Instance.GetCurrentLevel());
+        CurrentCamParent.gameObject.SetActive(true);
         ChangeCurrentCam();
     }
 

@@ -17,6 +17,8 @@ public class GameSystem : MonoBehaviour
     int TotalThiefCount;
     bool GameStatus = false;
     Transform CharacterParent;
+
+    [Header("Arrest")]
     [SerializeField] private Character PoliceCharacter;
     [SerializeField] private ParticleSystem PoliceSendEffect;
     [SerializeField] private Transform ArrestPosition;
@@ -28,19 +30,28 @@ public class GameSystem : MonoBehaviour
     [SerializeField] private GameObject RedLight;
     [SerializeField] private GameObject BlueLight;
 
+    [Header("Top Bar")]
+
     [SerializeField] private Image UiMask;
 
     [SerializeField] private Image[] LevelStars;
     [SerializeField] private Image ProgressBar;
+
+    [Header("End Popup")]
 
     [SerializeField] private GameObject EndPopup;
     [SerializeField] private Image[] EndLevelStars;
     [SerializeField] private GameObject RetryButton;
     [SerializeField] private  GameObject NextButton;
 
+    [Header("Pause Popup")]
+
     [SerializeField] private  GameObject PausePopup;
     [SerializeField] private  GameObject PauseBackground;
 
+    [Header("Navigation")]
+    [SerializeField] private NavMeshSurface OuterPlane;
+[SerializeField] private NavMeshSurface[] LevelSurfaces;
 
 
     Character LastThief;
@@ -56,12 +67,13 @@ public class GameSystem : MonoBehaviour
     void Start()
     {
         CharacterParent = GameObject.Find("Characters").transform;
-
+CreateCurrentLevel();
         StartGame();
     }
 
     void StartGame()
     {
+        
         ControlProgress();
         int firstCharCount = Mathf.RoundToInt(Globals.Instance.GetLevelCharacterLimit() * 0.75f);
         float waitTime = 0;
@@ -76,6 +88,26 @@ public class GameSystem : MonoBehaviour
 
         PoliceCharacter.Init(false,true);
         
+    }
+
+    void CreateCurrentLevel()
+    {
+        Debug.Log(Globals.Instance.GetCurrentLevel());
+        Transform levelParent = GameObject.Find("Levels").transform;
+
+        foreach(Transform level in levelParent)
+        {
+            if(level.GetSiblingIndex() == Globals.Instance.GetCurrentLevel())
+            {
+                level.gameObject.SetActive(true);
+            }
+            else
+            {
+                level.gameObject.SetActive(false);
+            }
+            
+        }
+        OuterPlane.BuildNavMesh();
     }
 
     void OutCharacter()
