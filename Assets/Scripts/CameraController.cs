@@ -51,7 +51,7 @@ public class CameraController : MonoBehaviour
 
 
     
-        Cam.localRotation = SmoothDampQuaternion(Cam.localRotation,targetQuaternion,ref SmoothVel, 0.3f);
+        Cam.localRotation = SmoothDampQuaternion(Cam.localRotation,targetQuaternion,ref SmoothVel, 0.4f);
         //Cam.rotation = Quaternion.Slerp(Cam.rotation,CamDummy.rotation,Time.time * 0.1f);
 
 
