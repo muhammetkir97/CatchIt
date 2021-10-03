@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-
+using UnityEngine.SceneManagement;
 
 public class PlayerInteract : MonoBehaviour
 {
@@ -15,6 +15,7 @@ public class PlayerInteract : MonoBehaviour
 
     [Header("Game Interface")]
     [SerializeField] private Button BtnAlarm;
+    [SerializeField] private Button BtnExit;
 
 
     
@@ -25,6 +26,8 @@ public class PlayerInteract : MonoBehaviour
         BtnLeftCam.onClick.AddListener(() => ClickChangeCam(-1));
         
         BtnAlarm.onClick.AddListener(ClickAlarm);
+        
+        BtnExit.onClick.AddListener(ClickExit);
     }
 
     // Update is called once per frame
@@ -50,6 +53,12 @@ public class PlayerInteract : MonoBehaviour
     void ActivateAlarmButton()
     {
         BtnAlarm.interactable = true;
+    }
+
+    void ClickExit()
+    {
+        SceneManager.LoadScene("MainScene",LoadSceneMode.Single);
+
     }
 
 

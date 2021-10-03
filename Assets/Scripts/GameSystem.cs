@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Sprites;
 
 public class GameSystem : MonoBehaviour
 {
@@ -13,6 +14,17 @@ public class GameSystem : MonoBehaviour
     int ThiefCount = 0;
     bool GameStatus = false;
     Transform CharacterParent;
+    [SerializeField] private Character PoliceCharacter;
+    [SerializeField] private ParticleSystem PoliceSendEffect;
+    [SerializeField] private Transform ArrestPosition;
+    [SerializeField] private Camera ArrestCamera;
+    [SerializeField] private Camera NormalCamera;
+    [SerializeField] private GameObject ArrestBackground;
+    [SerializeField] private GameObject ControlPanel;
+
+    [SerializeField] private GameObject RedLight;
+    [SerializeField] private GameObject BlueLight;
+
 
     void Awake()
     {
@@ -42,6 +54,8 @@ public class GameSystem : MonoBehaviour
         InvokeRepeating("CharacterCountControl",waitTime + 1,10);
         InvokeRepeating("OutCharacter",waitTime + 5,20);
 
+        PoliceCharacter.Init(false,true);
+        
     }
 
     void OutCharacter()
@@ -86,7 +100,7 @@ public class GameSystem : MonoBehaviour
                         thiefStatus = true;
                         ThiefCount++;
                     }
-                    tf.GetComponent<Character>().Init(thiefStatus);
+                    tf.GetComponent<Character>().Init(thiefStatus,false);
                     ActiveCharacter++;
                     break;
                 }
@@ -132,6 +146,7 @@ public class GameSystem : MonoBehaviour
                 if(IsVisibleOnCamera(selectedCharacter.GetStealObject()))
                 {
                     selectedCharacter.Busted();
+                    SendPolice(selectedCharacter);
                 }
                 
             }
@@ -144,6 +159,27 @@ public class GameSystem : MonoBehaviour
         if (GeometryUtility.TestPlanesAABB(planes , Object.GetComponent<Collider>().bounds)) return true;
 
         return false;
+    }
+
+    void SendPolice(Character thief)
+    {
+        ArrestCamera.enabled = true;
+        NormalCamera.enabled = false;
+        
+        thief.transform.position = ArrestPosition.position;
+        PoliceSendEffect.transform.position = thief.transform.position;
+        thief.transform.rotation = Quaternion.Euler(0,90,0);
+
+        iTween.ScaleTo(ControlPanel,Vector3.zero,0.3f);
+        iTween.RotateBy(RedLight,iTween.Hash("z",3,"time",5,"looptype",iTween.LoopType.loop,"easetype",iTween.EaseType.linear));
+        iTween.RotateBy(BlueLight,iTween.Hash("z",-3,"time",5,"looptype",iTween.LoopType.loop,"easetype",iTween.EaseType.linear));
+
+        iTween.RotateBy(ArrestBackground,iTween.Hash("z",1,"time",5,"looptype",iTween.LoopType.loop,"easetype",iTween.EaseType.linear));
+        iTween.MoveBy(ArrestBackground,iTween.Hash("z",0.5,"time",0.3,"looptype",iTween.LoopType.pingPong,"easetype",iTween.EaseType.linear));
+        PoliceSendEffect.Play();
+        PoliceCharacter.transform.position = thief.transform.position - (thief.transform.forward * 1.6f);
+        PoliceCharacter.transform.LookAt(thief.transform,Vector3.up);
+        PoliceCharacter.ArrestThief();
     }
 
     // Update is called once per frame

@@ -29,6 +29,7 @@ public class Character : MonoBehaviour
 
     bool IsActive = false;
     bool IsThief = false;
+    bool IsPolice = false;
     bool IsStealing = false;
     int TryStealTime = 0;
     int TimeStep = 0;
@@ -36,7 +37,7 @@ public class Character : MonoBehaviour
     {
         OutPosition = GameObject.Find("OutPosition").transform.position;
         CharacterParent = transform.GetChild(0);
-        SelectedCharacter = Random.Range(1,CharacterParent.childCount-1);
+        
         AnimatorController = CharacterParent.GetComponent<Animator>();
 
         Agent = transform.GetComponent<NavMeshAgent>();
@@ -44,24 +45,37 @@ public class Character : MonoBehaviour
         Waypoints = Globals.Instance.GetWaypoints();
         WaypointCount = Waypoints.childCount;
 
-        SetCharacterSkin();
+        
 
        
 
 
     }
 
-    public void Init(bool isThief)
+    public void Init(bool isThief,bool isPolice)
     {
+        IsPolice = isPolice;
         IsThief = isThief;
         if(isThief) SetAsThief();
         IsActive = true;
         Status = CharacterStatus.Stop;
 
-        CharacterParent.GetComponent<AnimEvent>().StealEnd += (() => StealEnded(1));
+        if(!IsPolice)
+        {
+             CharacterParent.GetComponent<AnimEvent>().StealEnd += (() => StealEnded(1));
+            InvokeRepeating("SetNewDestination",0,Random.Range(10,18));
+            InvokeRepeating("PathControl",0,0.1f);
+        }
+       
 
-        InvokeRepeating("SetNewDestination",0,Random.Range(10,18));
-        InvokeRepeating("PathControl",0,0.1f);
+        if(IsPolice)
+        {
+            SetPoliceSkin();
+        }
+        else 
+        {
+            SetCharacterSkin();
+        }
         
     }
 
@@ -75,11 +89,30 @@ public class Character : MonoBehaviour
     }
     void SetCharacterSkin()
     {
+        SelectedCharacter = Random.Range(1,CharacterParent.childCount-1);
+
+        while(SelectedCharacter == 22 || SelectedCharacter == 23)
+        {
+            SelectedCharacter = Random.Range(1,CharacterParent.childCount-1);
+        }
+        
+        SetSkin(SelectedCharacter);
+    }
+
+
+    void SetPoliceSkin()
+    {
+        SelectedCharacter = Random.Range(22,24);
+        SetSkin(SelectedCharacter);
+    }
+
+    void SetSkin(int selectedSkin)
+    {
         foreach(Transform character in CharacterParent)
         {
             if(character.GetSiblingIndex() != 0)
             {
-                if(character.GetSiblingIndex() == SelectedCharacter)
+                if(character.GetSiblingIndex() == selectedSkin)
                 {
                     character.gameObject.SetActive(true);
                 }
@@ -125,13 +158,10 @@ public class Character : MonoBehaviour
 
     void StartStealing()
     {
-
-
         IsStealing = true;
         AnimatorController.SetTrigger("Steal");
 
         Invoke("CreateStealObject",0.4f);
-
     }
 
     void CreateStealObject()
@@ -223,7 +253,23 @@ public class Character : MonoBehaviour
 
     public void Busted()
     {
+        Agent.enabled = false;
         AnimatorController.SetTrigger("Busted");
+        
+        CancelInvoke("SetNewDestination");
+        CancelInvoke("PathControl");
+        Invoke("DropObject",1.2f);
+    }
+
+    public void DropObject()
+    {
+        StealedObject.GetComponent<HandFollow>().enabled = false;
+        iTween.MoveBy(StealedObject,Vector3.forward * -3f,1.7f);
+    }
+
+    public void ArrestThief()
+    {
+        AnimatorController.SetTrigger("Police");
     }
 
     void SetDeactive()

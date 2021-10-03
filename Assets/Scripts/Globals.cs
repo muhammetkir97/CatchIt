@@ -24,8 +24,14 @@ public class Globals : MonoBehaviour
     {
         if(Instance == null)
         {
+
             Instance = this;
         }
+    }
+
+    void ReadPlayerValues()
+    {
+        CurrentLevel = PlayerPrefs.GetInt("Level",0);
     }
 
     public int GetLevelThiefLimit()
