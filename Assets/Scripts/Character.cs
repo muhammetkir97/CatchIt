@@ -65,6 +65,7 @@ public class Character : MonoBehaviour
         Waypoints = Globals.Instance.GetWaypoints();
         WaypointCount = Waypoints.childCount;
         
+        OutlineStatus(false);
         IsPolice = isPolice;
         IsThief = isThief;
         if(isThief) SetAsThief();
@@ -169,6 +170,8 @@ public class Character : MonoBehaviour
 
     void StartStealing()
     {
+
+        OutlineStatus(true);
         IsStealing = true;
         AnimatorController.SetTrigger("Steal");
 
@@ -190,11 +193,32 @@ public class Character : MonoBehaviour
 
     public void StealEnded( int i)
     {
+
+        OutlineStatus(false);
         IsStealing = false;
         Invoke("DestroyStealedObject",1f);
         transform.GetChild(1).GetComponent<ParticleSystem>().Play();
 
         CharacterOut(); 
+    }
+
+    void OutlineStatus(bool thiefStatus)
+    {
+        Outline outlineScript = transform.GetChild(0).GetComponent<Outline>();
+
+        if(thiefStatus)
+        {
+            outlineScript.OutlineColor = Color.red;
+            outlineScript.OutlineMode = Outline.Mode.OutlineAll;
+            outlineScript.OutlineWidth = 10;
+        }
+        else
+        {
+            outlineScript.OutlineColor = Color.white;
+            outlineScript.OutlineMode = Outline.Mode.OutlineVisible;
+            outlineScript.OutlineWidth = 3;
+        }
+
     }
 
     void DestroyStealedObject()
@@ -302,6 +326,16 @@ public class Character : MonoBehaviour
         Invoke("SetSelectable",10);
     }
 
+    public void SetDeactiveFast()
+    {
+        if(IsThief) GameSystem.Instance.OutThief();
+        IsActive = false;
+        IsThief = false;
+        IsStealing = false;
+        TimeStep = 0;
+        SetSelectable();
+    }
+
     public bool GetSelectableStatus()
     {
         return IsSelectable;
@@ -309,6 +343,7 @@ public class Character : MonoBehaviour
 
     void SetSelectable()
     {
+        transform.position = StartPosition;
                 Agent.enabled = true;
         Agent.Warp(StartPosition);
         Agent.SetDestination(StartPosition);

@@ -263,8 +263,8 @@ CreateCurrentLevel();
         SetArrestCamera(false);
         SetArrestEffects(false);
         
-        LastThief.SetDeactive();
-        PoliceCharacter.SetDeactive();
+        LastThief.SetDeactiveFast();
+        PoliceCharacter.SetDeactiveFast();
     }
 
     void SetArrestEffects(bool status)
