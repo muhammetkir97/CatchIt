@@ -293,6 +293,8 @@ public class Character : MonoBehaviour
 
     public void Busted()
     {
+        OutlineStatus(false);
+        
         CancelInvoke("DestroyStealedObject");
         Agent.enabled = false;
         AnimatorController.SetTrigger("Busted");
