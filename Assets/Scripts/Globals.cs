@@ -53,7 +53,7 @@ public class Globals : MonoBehaviour
     public int GetCurrentLevel()
     {
         //return CurrentLevel;
-        return 0;
+        return 1;
     }
 
     public GameObject GetCurrentLevelObject()

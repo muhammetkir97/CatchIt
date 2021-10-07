@@ -205,7 +205,7 @@ public class Character : MonoBehaviour
     void OutlineStatus(bool thiefStatus)
     {
         Outline outlineScript = transform.GetChild(0).GetComponent<Outline>();
-
+        Debug.Log(transform.name);
         if(thiefStatus)
         {
             outlineScript.OutlineColor = Color.red;
