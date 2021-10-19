@@ -170,7 +170,7 @@ public class Character : MonoBehaviour
 
     void StartStealing()
     {
-
+        GameSystem.Instance.SetThiefCamera(transform,true);
         OutlineStatus(true);
         IsStealing = true;
         AnimatorController.SetTrigger("Steal");
@@ -193,7 +193,7 @@ public class Character : MonoBehaviour
 
     public void StealEnded( int i)
     {
-
+        GameSystem.Instance.SetThiefCamera(transform,false);
         OutlineStatus(false);
         IsStealing = false;
         Invoke("DestroyStealedObject",1f);
@@ -293,6 +293,8 @@ public class Character : MonoBehaviour
 
     public void Busted()
     {
+        GameSystem.Instance.SetThiefCamera(transform,false);
+        
         OutlineStatus(false);
         
         CancelInvoke("DestroyStealedObject");

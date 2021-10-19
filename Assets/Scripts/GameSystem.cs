@@ -24,6 +24,7 @@ public class GameSystem : MonoBehaviour
     [SerializeField] private Transform ArrestPosition;
     [SerializeField] private Camera ArrestCamera;
     [SerializeField] private Camera NormalCamera;
+    [SerializeField] private Camera ThiefCamera;
     [SerializeField] private GameObject ArrestBackground;
     [SerializeField] private GameObject ControlPanel;
 
@@ -51,8 +52,12 @@ public class GameSystem : MonoBehaviour
 
     [Header("Navigation")]
     [SerializeField] private NavMeshSurface OuterPlane;
-[SerializeField] private NavMeshSurface[] LevelSurfaces;
+    [SerializeField] private NavMeshSurface[] LevelSurfaces;
 
+
+    [Header("Thief Camera")]
+    [SerializeField] private  GameObject ThiefCamSprite;
+    [SerializeField] private  Image ThiefCamImage;
 
     Character LastThief;
 
@@ -67,7 +72,7 @@ public class GameSystem : MonoBehaviour
     void Start()
     {
         CharacterParent = GameObject.Find("Characters").transform;
-CreateCurrentLevel();
+        CreateCurrentLevel();
         StartGame();
     }
 
@@ -378,6 +383,44 @@ CreateCurrentLevel();
     void SetPausePopupVisible(bool status)
     {
         PausePopup.SetActive(status);
+    }
+
+    void ShowThiefCam()
+    {
+        iTween.ValueTo(gameObject,iTween.Hash("name","ThiefCam","from",0.7f,"to",1f,"time",0.3f,"onupdate","ThiefCamAnim","looptype",iTween.LoopType.pingPong));
+        iTween.ScaleTo(ThiefCamSprite,Vector3.one,0.3f);
+
+    }
+
+    void HideThiefCam()
+    {
+        iTween.StopByName("ThiefCam");
+        iTween.ScaleTo(ThiefCamSprite,Vector3.zero,0.3f);
+    }
+
+    public void SetThiefCamera(Transform thief,bool status)
+    {
+        ThiefCamera.enabled = status;
+        if(status)
+        {
+            ShowThiefCam();
+        }
+        else
+        {
+            HideThiefCam();
+        }
+        
+        ThiefCamera.transform.position = thief.position + (Vector3.up * 3) + (transform.forward * 1f);
+        ThiefCamera.transform.LookAt(thief);
+        
+        
+    }
+
+    void ThiefCamAnim(float val)
+    {
+        Color tempColor = ThiefCamImage.color;
+        tempColor.a = val;
+        ThiefCamImage.color = tempColor;
     }
 
 
